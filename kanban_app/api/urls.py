@@ -5,6 +5,7 @@ from rest_framework.routers import SimpleRouter
 
 from kanban_app.api.views import (
     AssignedTaskListView,
+    BoardMembersListView,
     BoardViewSet,
     CommentViewSet,
     ReviewingTaskListView,
@@ -16,6 +17,11 @@ router.register('boards', BoardViewSet, basename='board')
 router.register('tasks', TaskViewSet, basename='task')
 
 urlpatterns = [
+    path(
+        'boards/<int:board_id>/members/',
+        BoardMembersListView.as_view(),
+        name='board-members',
+    ),
     path(
         'tasks/assigned-to-me/',
         AssignedTaskListView.as_view(),

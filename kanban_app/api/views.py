@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from auth_app.api.serializers import UserSerializer
 from kanban_app.api.permissions import (
     IsBoardMember,
     IsBoardOwnerOrReadOnly,
@@ -103,3 +104,18 @@ class CommentViewSet(viewsets.ModelViewSet):
             board__members=self.request.user,
         )
         serializer.save(task=task, author=self.request.user)
+
+
+class BoardMembersListView(generics.ListAPIView):
+    """Members of a specific board the current user is a member of."""
+
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated, IsBoardMember]
+
+    def get_queryset(self):
+        board = get_object_or_404(
+            Board,
+            pk=self.kwargs['board_id'],
+            members=self.request.user,
+        )
+        return board.members.all()

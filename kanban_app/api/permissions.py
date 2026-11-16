@@ -15,10 +15,14 @@ def get_board(obj):
 
 
 class IsBoardMember(BasePermission):
-    """Allows access only to members of the object's board."""
+    """Allows access only to members or the owner of the object's board."""
 
     def has_object_permission(self, request, view, obj):
-        return get_board(obj).members.filter(pk=request.user.pk).exists()
+        board = get_board(obj)
+        return (
+            board.members.filter(pk=request.user.pk).exists()
+            or board.owner_id == request.user.pk
+        )
 
 
 class IsBoardOwnerOrReadOnly(BasePermission):
