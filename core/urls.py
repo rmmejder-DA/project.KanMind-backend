@@ -7,11 +7,22 @@ from rest_framework.authtoken import views as token_views
 from core.views import api_index
 
 urlpatterns = [
-    path('', api_index, name='index'),
-    path('admin/', admin.site.urls),
-    path('api/', api_index, name='api-index'),
+    # Admin
+    path('admin/', admin.site.urls, name='admin'),
+    
+    # Auth Token
     path('api/auth-token/', token_views.obtain_auth_token, name='api-token-auth'),
-    path('api-auth/', include('rest_framework.urls')),
+    
+    # Authentication & User endpoints
     path('api/', include('auth_app.api.urls')),
+    
+    # Kanban Board, Task, Comment endpoints
     path('api/', include('kanban_app.api.urls')),
+    
+    # API Index
+    path('', api_index, name='index'),
+    
+    # DRF auth UI
+    path('api-auth/', include('rest_framework.urls')),
 ]
+

@@ -12,20 +12,33 @@ from kanban_app.api.views import (
 )
 
 urlpatterns = [
+    # Boards
     path(
         'boards/',
         BoardViewSet.as_view({'get': 'list', 'post': 'create'}),
         name='board-list',
     ),
     path(
+        'boards/<int:pk>/',
+        BoardViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
+        name='board-detail',
+    ),
+    path(
         'boards/<int:board_id>/members/',
         BoardMembersListView.as_view(),
         name='board-members',
     ),
+    
+    # Tasks
     path(
-        'boards/<int:pk>/',
-        BoardViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
-        name='board-detail',
+        'tasks/',
+        TaskViewSet.as_view({'get': 'list', 'post': 'create'}),
+        name='task-list',
+    ),
+    path(
+        'tasks/<int:pk>/',
+        TaskViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
+        name='task-detail',
     ),
     path(
         'tasks/assigned-to-me/',
@@ -37,11 +50,8 @@ urlpatterns = [
         ReviewingTaskListView.as_view(),
         name='tasks-reviewing',
     ),
-    path(
-        'tasks/',
-        TaskViewSet.as_view({'get': 'list', 'post': 'create'}),
-        name='task-list',
-    ),
+    
+    # Task Comments
     path(
         'tasks/<int:task_id>/comments/',
         CommentViewSet.as_view({'get': 'list', 'post': 'create'}),
@@ -52,9 +62,5 @@ urlpatterns = [
         CommentViewSet.as_view({'delete': 'destroy'}),
         name='task-comment-detail',
     ),
-    path(
-        'tasks/<int:pk>/',
-        TaskViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
-        name='task-detail',
-    ),
 ]
+
