@@ -32,7 +32,10 @@ class IsBoardOwnerOrReadOnly(BasePermission):
 
 
 class IsCommentAuthor(BasePermission):
-    """Allows only the author of a comment to delete it."""
+    """Allows only the author of a comment to delete it, all members can read."""
 
     def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
         return obj.author_id == request.user.pk
+

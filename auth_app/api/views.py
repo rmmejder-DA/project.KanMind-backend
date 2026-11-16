@@ -5,6 +5,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
 
 from auth_app.api.serializers import (
     LoginSerializer,
@@ -21,6 +22,7 @@ def build_auth_payload(user, token):
         'user_id': user.id,
         'email': user.email,
         'fullname': user.fullname,
+        'is_staff': user.is_staff,
     }
 
 
@@ -55,6 +57,23 @@ class LoginView(APIView):
         return Response(build_auth_payload(user, token))
 
 
+class GuestLoginView(APIView):
+    """Guest login without authentication - returns a guest token."""
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """Return guest access info."""
+        return Response({
+            'mode': 'guest',
+            'message': 'Guest mode enabled',
+            'token': None,
+            'user_id': None,
+            'email': 'guest@example.com',
+            'fullname': 'Guest User',
+        }, status=status.HTTP_200_OK)
+
+
 class EmailCheckView(APIView):
     """Looks up a registered user by email address."""
 
@@ -67,3 +86,4 @@ class EmailCheckView(APIView):
             email=request.query_params.get('email', ''),
         )
         return Response(UserSerializer(user).data)
+
