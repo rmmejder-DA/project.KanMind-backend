@@ -104,15 +104,25 @@ class TaskSerializer(serializers.ModelSerializer):
             'due_date',
             'comments_count',
         ]
+        extra_kwargs = {
+            'board': {'required': False},
+            'title': {'required': False},
+        }
 
     def validate_board(self, value):
         """Only allow tasks on boards the requesting user belongs to."""
-        ensure_board_member(value, self.context['request'].user)
+        if value is not None:
+            ensure_board_member(value, self.context['request'].user)
         return value
 
     def validate(self, attrs):
         """Ensure assignee and reviewer are members of the task's board."""
-        board = attrs.get('board', getattr(self.instance, 'board', None))
+        # For PATCH, board might not be in attrs, so get it from instance
+        board = attrs.get('board') or (self.instance.board if self.instance else None)
+        
+        if board is None:
+            return attrs
+        
         for field in ('assignee', 'reviewer'):
             person = attrs.get(field)
             if person is not None:

@@ -54,7 +54,7 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, _ = Token.objects.get_or_create(user=user)
-        return Response(build_auth_payload(user, token))
+        return Response(build_auth_payload(user, token), status=status.HTTP_200_OK)
 
 
 class GuestLoginView(APIView):

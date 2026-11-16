@@ -1,7 +1,6 @@
 """URL routes for boards, tasks and task comments."""
 
 from django.urls import path
-from rest_framework.routers import SimpleRouter
 
 from kanban_app.api.views import (
     AssignedTaskListView,
@@ -12,15 +11,21 @@ from kanban_app.api.views import (
     TaskViewSet,
 )
 
-router = SimpleRouter()
-router.register('boards', BoardViewSet, basename='board')
-router.register('tasks', TaskViewSet, basename='task')
-
 urlpatterns = [
+    path(
+        'boards/',
+        BoardViewSet.as_view({'get': 'list', 'post': 'create'}),
+        name='board-list',
+    ),
     path(
         'boards/<int:board_id>/members/',
         BoardMembersListView.as_view(),
         name='board-members',
+    ),
+    path(
+        'boards/<int:pk>/',
+        BoardViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
+        name='board-detail',
     ),
     path(
         'tasks/assigned-to-me/',
@@ -33,6 +38,11 @@ urlpatterns = [
         name='tasks-reviewing',
     ),
     path(
+        'tasks/',
+        TaskViewSet.as_view({'get': 'list', 'post': 'create'}),
+        name='task-list',
+    ),
+    path(
         'tasks/<int:task_id>/comments/',
         CommentViewSet.as_view({'get': 'list', 'post': 'create'}),
         name='task-comments',
@@ -42,4 +52,9 @@ urlpatterns = [
         CommentViewSet.as_view({'delete': 'destroy'}),
         name='task-comment-detail',
     ),
-] + router.urls
+    path(
+        'tasks/<int:pk>/',
+        TaskViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
+        name='task-detail',
+    ),
+]
