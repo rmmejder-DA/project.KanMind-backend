@@ -1,11 +1,12 @@
 """Views for registration, login and email lookup."""
 
 from django.shortcuts import get_object_or_404
+
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
 
 from auth_app.api.serializers import (
     LoginSerializer,
@@ -18,11 +19,11 @@ from auth_app.models import User
 def build_auth_payload(user, token):
     """Return the data the frontend stores after login or registration."""
     return {
-        'token': token.key,
-        'user_id': user.id,
-        'email': user.email,
-        'fullname': user.fullname,
-        'is_staff': user.is_staff,
+        "token": token.key,
+        "user_id": user.id,
+        "email": user.email,
+        "fullname": user.fullname,
+        "is_staff": user.is_staff,
     }
 
 
@@ -31,47 +32,79 @@ class RegistrationView(APIView):
 
     permission_classes = [AllowAny]
 
+    def get(self, request):
+        return Response(
+            {
+                "fullname": "Max Mustermann",
+                "email": "max@example.com",
+                "password": "Test123456",
+                "repeated_password": "Test123456",
+            },
+            status=status.HTTP_200_OK,
+        )
+
     def post(self, request):
-        """Validate the input, create the user and return the token."""
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         user = serializer.save()
-        token = Token.objects.create(user=user)
-        return Response(build_auth_payload(user, token), status=201)
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response(
+            build_auth_payload(user, token),
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class LoginView(APIView):
     """Authenticates a user by email and password."""
 
     permission_classes = [AllowAny]
+    serializer_class = LoginSerializer
+
+    def get(self, request):
+        return Response(
+            {
+                "email": "max@example.com",
+                "password": "Test123456",
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def post(self, request):
-        """Return the API token for valid credentials."""
-        serializer = LoginSerializer(
-            data=request.data,
-            context={'request': request},
-        )
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+
+        user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
-        return Response(build_auth_payload(user, token), status=status.HTTP_200_OK)
+
+        return Response(
+            build_auth_payload(user, token),
+            status=status.HTTP_200_OK,
+        )
 
 
 class GuestLoginView(APIView):
-    """Guest login without authentication - returns a guest token."""
+    """Guest login without authentication."""
 
     permission_classes = [AllowAny]
 
-    def post(self, request):
-        """Return guest access info."""
-        return Response({
-            'mode': 'guest',
-            'message': 'Guest mode enabled',
-            'token': None,
-            'user_id': None,
-            'email': 'guest@example.com',
-            'fullname': 'Guest User',
-        }, status=status.HTTP_200_OK)
+    def get(self, request):
+        guest_user = User.objects.filter(is_staff=False).first()
+
+        if not guest_user:
+            return Response(
+                {"detail": "No guest user available."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {
+                "email": guest_user.email,
+                "password": "asdasdasd"
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class EmailCheckView(APIView):
@@ -80,10 +113,14 @@ class EmailCheckView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Return the user for the email query parameter or 404."""
+        email = request.query_params.get("email")
+
         user = get_object_or_404(
             User,
-            email=request.query_params.get('email', ''),
+            email=email,
         )
-        return Response(UserSerializer(user).data)
 
+        return Response(
+            UserSerializer(user).data,
+            status=status.HTTP_200_OK,
+        )

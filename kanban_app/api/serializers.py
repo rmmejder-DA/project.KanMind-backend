@@ -10,9 +10,7 @@ from kanban_app.models import Board, Comment, Task
 def ensure_board_member(board, user):
     """Raise a validation error when the user is not a board member."""
     if not board.members.filter(pk=user.pk).exists():
-        raise serializers.ValidationError(
-            'You are not a member of this board.'
-        )
+        raise serializers.ValidationError("You are not a member of this board.")
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -32,21 +30,21 @@ class BoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Board
         fields = [
-            'id',
-            'title',
-            'owner_id',
-            'members',
-            'member_count',
-            'ticket_count',
-            'tasks_to_do_count',
-            'tasks_high_prio_count',
+            "id",
+            "title",
+            "owner_id",
+            "members",
+            "member_count",
+            "ticket_count",
+            "tasks_to_do_count",
+            "tasks_high_prio_count",
         ]
 
     def validate_title(self, value):
         """Enforce the title length accepted by the frontend."""
         if not 2 < len(value.strip()) < 64:
             raise serializers.ValidationError(
-                'Title must be between 3 and 63 characters.'
+                "Title must be between 3 and 63 characters."
             )
         return value.strip()
 
@@ -60,11 +58,11 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def get_tasks_to_do_count(self, obj):
         """Return the number of tasks with the to-do status."""
-        return obj.tasks.filter(status='to-do').count()
+        return obj.tasks.filter(status="to-do").count()
 
     def get_tasks_high_prio_count(self, obj):
         """Return the number of tasks with high priority."""
-        return obj.tasks.filter(priority='high').count()
+        return obj.tasks.filter(priority="high").count()
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -72,67 +70,76 @@ class TaskSerializer(serializers.ModelSerializer):
 
     assignee = UserSerializer(read_only=True)
     reviewer = UserSerializer(read_only=True)
+
     assignee_id = serializers.PrimaryKeyRelatedField(
-        source='assignee',
+        source="assignee",
         queryset=User.objects.all(),
-        allow_null=True,
-        required=False,
         write_only=True,
+        required=False,
+        allow_null=True,
     )
+
     reviewer_id = serializers.PrimaryKeyRelatedField(
-        source='reviewer',
+        source="reviewer",
         queryset=User.objects.all(),
-        allow_null=True,
-        required=False,
         write_only=True,
+        required=False,
+        allow_null=True,
     )
-    comments_count = serializers.SerializerMethodField()
+
+    comments_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Task
         fields = [
-            'id',
-            'board',
-            'title',
-            'description',
-            'status',
-            'priority',
-            'assignee',
-            'assignee_id',
-            'reviewer',
-            'reviewer_id',
-            'due_date',
-            'comments_count',
+            "id",
+            "board",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "assignee_id",
+            "reviewer",
+            "reviewer_id",
+            "due_date",
+            "comments_count",
         ]
+
         extra_kwargs = {
-            'board': {'required': False},
-            'title': {'required': False},
+            "board": {"required": False},
+            "title": {"required": False},
         }
 
-    def validate_board(self, value):
-        """Only allow tasks on boards the requesting user belongs to."""
-        if value is not None:
-            ensure_board_member(value, self.context['request'].user)
-        return value
+    def validate_board(self, board):
+        """Allow only board members to create tasks."""
+        ensure_board_member(
+            board,
+            self.context["request"].user,
+        )
+        return board
 
     def validate(self, attrs):
-        """Ensure assignee and reviewer are members of the task's board."""
-        # For PATCH, board might not be in attrs, so get it from instance
-        board = attrs.get('board') or (self.instance.board if self.instance else None)
-        
-        if board is None:
+        """Ensure assignee and reviewer belong to the board."""
+
+        board = attrs.get(
+            "board",
+            getattr(self.instance, "board", None),
+        )
+
+        if not board:
             return attrs
-        
-        for field in ('assignee', 'reviewer'):
-            person = attrs.get(field)
-            if person is not None:
-                ensure_board_member(board, person)
+
+        assignee = attrs.get("assignee")
+        reviewer = attrs.get("reviewer")
+
+        if assignee:
+            ensure_board_member(board, assignee)
+
+        if reviewer:
+            ensure_board_member(board, reviewer)
+
         return attrs
-
-    def get_comments_count(self, obj):
-        """Return the number of comments on the task."""
-        return obj.comments.count()
-
 
 class BoardDetailSerializer(BoardSerializer):
     """Board with full member and task data for the board view."""
@@ -141,15 +148,14 @@ class BoardDetailSerializer(BoardSerializer):
     tasks = TaskSerializer(many=True, read_only=True)
 
     class Meta(BoardSerializer.Meta):
-        fields = BoardSerializer.Meta.fields + ['tasks']
+        fields = BoardSerializer.Meta.fields + ["tasks"]
 
 
 class CommentSerializer(serializers.ModelSerializer):
     """Comment data with the author's full name."""
 
-    author = serializers.CharField(source='author.fullname', read_only=True)
+    author = serializers.CharField(source="author.fullname", read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'content', 'created_at']
-        read_only_fields = ['created_at']
+        fields = ["author", "comment"]

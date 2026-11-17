@@ -27,4 +27,4 @@ class TaskAdmin(admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
     """Shows comments with their task and author."""
 
-    list_display = ['task', 'author', 'created_at']
+    list_display = ['task', 'author', 'comment']

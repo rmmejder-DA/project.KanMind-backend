@@ -53,13 +53,20 @@ urlpatterns = [
     
     # Task Comments
     path(
-        'tasks/<int:task_id>/comments/',
-        CommentViewSet.as_view({'get': 'list', 'post': 'create'}),
-        name='task-comments',
+        'tasks/allcomments/',
+        CommentViewSet.as_view({
+            'get': 'list',
+            'post': 'create'
+        }),
+        name='all-comments',
     ),
     path(
         'tasks/<int:task_id>/comments/<int:pk>/',
-        CommentViewSet.as_view({'delete': 'destroy'}),
+        CommentViewSet.as_view({
+            'get': 'retrieve',
+            'patch': 'update',
+            'delete': 'destroy',
+        }),
         name='task-comment-detail',
     ),
 ]

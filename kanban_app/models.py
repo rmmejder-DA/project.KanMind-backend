@@ -98,13 +98,12 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments',
     )
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    comment = models.TextField()
 
     class Meta:
         verbose_name = 'Comment'
         verbose_name_plural = 'Comments'
-        ordering = ['created_at']
+        ordering = ['id']
 
     def __str__(self):
         return f'Comment by {self.author} on {self.task}'

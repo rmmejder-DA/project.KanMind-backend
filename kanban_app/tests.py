@@ -104,7 +104,7 @@ class KanbanApiTests(TestCase):
     def test_comment_create_list_and_delete(self):
         self.client.force_authenticate(user=self.member)
         created = self.client.post(
-            comments_url(self.task.id), {'content': 'Hallo'}, format='json',
+            comments_url(self.task.id), {'comment': 'Hallo'}, format='json',
         )
         self.assertEqual(created.status_code, 201)
         self.assertEqual(created.data['author'], 'Mia Member')
@@ -121,7 +121,7 @@ class KanbanApiTests(TestCase):
 
     def test_comment_delete_by_non_author_is_forbidden(self):
         comment = Comment.objects.create(
-            task=self.task, author=self.member, content='Meins',
+            task=self.task, author=self.member, comment='Meins',
         )
 
         response = self.client.delete(
@@ -134,7 +134,7 @@ class KanbanApiTests(TestCase):
         self.client.force_authenticate(user=self.outsider)
 
         response = self.client.post(
-            comments_url(self.task.id), {'content': 'Hi'}, format='json',
+            comments_url(self.task.id), {'comment': 'Hi'}, format='json',
         )
 
         self.assertEqual(response.status_code, 404)

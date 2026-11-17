@@ -17,6 +17,7 @@ from kanban_app.api.serializers import (
     TaskSerializer,
 )
 from kanban_app.models import Board, Comment, Task
+from django.db.models import Count
 
 
 class BoardViewSet(viewsets.ModelViewSet):
@@ -34,7 +35,7 @@ class BoardViewSet(viewsets.ModelViewSet):
         return Board.objects.filter(members=self.request.user).distinct()
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action == "retrieve":
             return BoardDetailSerializer
         return BoardSerializer
 
@@ -52,13 +53,12 @@ class BoardViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     """Tasks on boards the current user is a member of."""
 
-    queryset = Task.objects.all()
+    queryset = Task.objects.annotate(comments_count=Count("comments"))
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsBoardMember]
 
     def get_queryset(self):
         return Task.objects.filter(board__members=self.request.user).distinct()
-
 
 class UserTaskListView(generics.ListAPIView):
     """Lists tasks linked to the current user through one relation."""
@@ -68,42 +68,27 @@ class UserTaskListView(generics.ListAPIView):
     user_field = None
 
     def get_queryset(self):
-        return Task.objects.filter(**{self.user_field: self.request.user})
+        if not self.user_field:
+            return Task.objects.none()
+
+        return Task.objects.filter(
+            **{self.user_field: self.request.user}
+        )
 
 
 class AssignedTaskListView(UserTaskListView):
     """Tasks assigned to the current user."""
 
-    user_field = 'assignee'
+    user_field = "assignee"
 
 
 class ReviewingTaskListView(UserTaskListView):
-    """Tasks the current user has to review."""
-
-    user_field = 'reviewer'
-
+    user_field = "reviewer"
+    
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """Comments on a task the current user has access to."""
-
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated, IsBoardMember, IsCommentAuthor]
-
-    def get_queryset(self):
-        return Comment.objects.filter(
-            task_id=self.kwargs['task_id'],
-            task__board__members=self.request.user,
-        )
-
-    def perform_create(self, serializer):
-        """Attach the comment to the task and to the requesting user."""
-        task = get_object_or_404(
-            Task,
-            pk=self.kwargs['task_id'],
-            board__members=self.request.user,
-        )
-        serializer.save(task=task, author=self.request.user)
 
 
 class BoardMembersListView(generics.ListAPIView):
@@ -115,7 +100,7 @@ class BoardMembersListView(generics.ListAPIView):
     def get_queryset(self):
         board = get_object_or_404(
             Board,
-            pk=self.kwargs['board_id'],
+            pk=self.kwargs["board_id"],
             members=self.request.user,
         )
         return board.members.all()
