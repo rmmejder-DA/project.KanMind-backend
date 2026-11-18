@@ -38,6 +38,7 @@ flake8 --exclude=.venv,*/migrations/* .
 | POST   | `/api/registration/`                   | Register a user, returns token  |
 | POST   | `/api/login/`                          | Log in, returns token           |
 | GET    | `/api/email-check/?email=`             | Look up a user by email         |
+| POST   | `/api/email-check/`                    | Same, email as JSON body        |
 | GET    | `/api/boards/`                         | Boards the user is a member of  |
 | POST   | `/api/boards/`                         | Create a board                  |
 | GET    | `/api/boards/{id}/`                    | Board with members and tasks    |

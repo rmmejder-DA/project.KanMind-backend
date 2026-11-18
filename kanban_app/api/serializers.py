@@ -119,22 +119,12 @@ class TaskSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """Ensure assignee and reviewer belong to the board."""
 
-        board = attrs.get(
-            "board",
-            getattr(self.instance, "board", None),
-        )
+        board = attrs.get("board", getattr(self.instance, "board", None))
 
-        if not board:
-            return attrs
-
-        assignee = attrs.get("assignee")
-        reviewer = attrs.get("reviewer")
-
-        if assignee:
-            ensure_board_member(board, assignee)
-
-        if reviewer:
-            ensure_board_member(board, reviewer)
+        if board:
+            for person in (attrs.get("assignee"), attrs.get("reviewer")):
+                if person:
+                    ensure_board_member(board, person)
 
         return attrs
 

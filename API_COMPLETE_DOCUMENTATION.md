@@ -91,6 +91,14 @@ POST /api/guest-login/
 GET /api/email-check/?email=user@example.com
 ```
 
+Alternativ ohne Eintrag in die URL (z. B. in Postman oder einem Frontend):
+```
+POST /api/email-check/
+Content-Type: application/json
+
+{"email": "user@example.com"}
+```
+
 **Success Response (200 OK):**
 ```json
 {
@@ -99,6 +107,8 @@ GET /api/email-check/?email=user@example.com
   "fullname": "Example User"
 }
 ```
+
+**Status Codes:** 200 gefunden, 400 fehlende oder ungültige E-Mail, 404 unbekannt, 401 nicht eingeloggt.
 
 **Requires:** Authentication ✅
 

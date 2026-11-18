@@ -74,20 +74,13 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        user = authenticate(
-            email=attrs["email"],
-            password=attrs["password"]
-        )
+        user = authenticate(email=attrs["email"], password=attrs["password"])
 
         if user is None:
-            raise serializers.ValidationError(
-                "Invalid email or password."
-            )
+            raise serializers.ValidationError("Invalid email or password.")
 
         if not user.is_active:
-            raise serializers.ValidationError(
-                "User account is disabled."
-            )
+            raise serializers.ValidationError("User account is disabled.")
 
         attrs["user"] = user
         return attrs

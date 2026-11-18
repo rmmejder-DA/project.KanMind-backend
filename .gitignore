@@ -5,3 +5,7 @@ __pycache__/
 db.sqlite3
 .coverage
 htmlcov/
+API_COMPLETE_DOCUMENTATION.md 
+API_DOCUMENTATION_CHECKLIST.md 
+DJANGO_URLS_VIEWS_ANLEITUNG.md
+tests.py

@@ -100,42 +100,43 @@ class GuestLoginView(APIView):
             )
 
         return Response(
-            {
-                "email": guest_user.email,
-                "password": "asdasdasd"
-            },
+            {"email": guest_user.email},
             status=status.HTTP_200_OK,
         )
 
 
 class EmailCheckView(APIView):
-    """Looks up a registered user by email address."""
+    """Looks up a registered user by email address.
+
+    GET takes the email as query parameter, POST takes it as JSON body
+    ({"email": "..."}) so it can be sent without typing into a URL.
+    """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        email = request.query_params.get("email")
+        return self.check_email(request.query_params.get("email"))
 
-        if not email:
-            return Response(
-                {"detail": "Email is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    def post(self, request):
+        data = request.data if isinstance(request.data, dict) else {}
+        return self.check_email(data.get("email"))
 
+    def check_email(self, email):
+        if not isinstance(email, str) or not email:
+            return self.bad_request("Email is required.", email="user@example.com")
+
+        if not self.is_valid_email(email):
+            return self.bad_request("Invalid email address.")
+
+        user = get_object_or_404(User, email=email)
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+
+    def is_valid_email(self, email):
         try:
             validate_email(email)
         except DjangoValidationError:
-            return Response(
-                {"detail": "Invalid email address."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return False
+        return True
 
-        user = get_object_or_404(
-            User,
-            email=email,
-        )
-
-        return Response(
-            UserSerializer(user).data,
-            status=status.HTTP_200_OK,
-        )
+    def bad_request(self, detail, **extra):
+        return Response({"detail": detail, **extra}, status=status.HTTP_400_BAD_REQUEST)
