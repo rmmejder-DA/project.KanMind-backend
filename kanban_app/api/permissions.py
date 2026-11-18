@@ -35,6 +35,16 @@ class IsBoardOwnerOrReadOnly(BasePermission):
         )
 
 
+class IsTaskCreatorOrBoardOwner(BasePermission):
+    """Allows deleting a task only for its creator or the owner of its board."""
+
+    def has_object_permission(self, request, view, obj):
+        return (
+            obj.created_by_id == request.user.pk
+            or obj.board.owner_id == request.user.pk
+        )
+
+
 class IsCommentAuthor(BasePermission):
     """Allows only the author of a comment to delete it, all members can read."""
 

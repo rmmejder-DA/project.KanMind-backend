@@ -1,5 +1,7 @@
 """Views for registration, login and email lookup."""
 
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status
@@ -23,7 +25,6 @@ def build_auth_payload(user, token):
         "user_id": user.id,
         "email": user.email,
         "fullname": user.fullname,
-        "is_staff": user.is_staff,
     }
 
 
@@ -114,6 +115,20 @@ class EmailCheckView(APIView):
 
     def get(self, request):
         email = request.query_params.get("email")
+
+        if not email:
+            return Response(
+                {"detail": "Email is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            validate_email(email)
+        except DjangoValidationError:
+            return Response(
+                {"detail": "Invalid email address."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         user = get_object_or_404(
             User,

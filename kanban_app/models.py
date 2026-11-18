@@ -74,6 +74,13 @@ class Task(models.Model):
         blank=True,
         related_name='reviewing_tasks',
     )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_tasks',
+    )
     due_date = models.DateField(null=True, blank=True)
 
     class Meta:
@@ -99,6 +106,7 @@ class Comment(models.Model):
         related_name='comments',
     )
     comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'Comment'

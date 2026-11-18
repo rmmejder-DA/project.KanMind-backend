@@ -49,8 +49,10 @@ flake8 --exclude=.venv,*/migrations/* .
 | DELETE | `/api/tasks/{id}/`                     | Delete a task                   |
 | GET    | `/api/tasks/assigned-to-me/`           | Tasks assigned to the user      |
 | GET    | `/api/tasks/reviewing/`                | Tasks the user reviews          |
-| GET    | `/api/tasks/{id}/comments/`            | List comments of a task         |
-| POST   | `/api/tasks/{id}/comments/`            | Add a comment                   |
+| GET    | `/api/tasks/allcomments/`              | List comments of accessible tasks |
+| GET    | `/api/tasks/{id}/comments/`            | List comments of one task (oldest first) |
+| POST   | `/api/tasks/{id}/comments/`            | Add a comment to one task (`content` in body) |
+| POST   | `/api/tasks/allcomments/`              | Add a comment (`task`, `comment` in body) |
 | DELETE | `/api/tasks/{id}/comments/{cid}/`      | Delete own comment              |
 
 Protected endpoints expect the header `Authorization: Token <key>`.

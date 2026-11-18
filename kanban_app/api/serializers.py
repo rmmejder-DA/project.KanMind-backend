@@ -106,13 +106,10 @@ class TaskSerializer(serializers.ModelSerializer):
             "comments_count",
         ]
 
-        extra_kwargs = {
-            "board": {"required": False},
-            "title": {"required": False},
-        }
-
     def validate_board(self, board):
-        """Allow only board members to create tasks."""
+        """Allow only board members to create tasks, and keep the board of an existing task."""
+        if self.instance and board != self.instance.board:
+            raise serializers.ValidationError("The board of a task cannot be changed.")
         ensure_board_member(
             board,
             self.context["request"].user,
@@ -141,14 +138,43 @@ class TaskSerializer(serializers.ModelSerializer):
 
         return attrs
 
-class BoardDetailSerializer(BoardSerializer):
-    """Board with full member and task data for the board view."""
+class BoardTaskSerializer(TaskSerializer):
+    """Task data nested in a board, without the board id."""
 
+    class Meta(TaskSerializer.Meta):
+        fields = [field for field in TaskSerializer.Meta.fields if field != "board"]
+
+
+class BoardDetailSerializer(serializers.ModelSerializer):
+    """Board with its members and tasks."""
+
+    owner_id = serializers.IntegerField(read_only=True)
     members = UserSerializer(many=True, read_only=True)
-    tasks = TaskSerializer(many=True, read_only=True)
+    tasks = BoardTaskSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Board
+        fields = ["id", "title", "owner_id", "members", "tasks"]
+
+
+class BoardUpdateSerializer(serializers.ModelSerializer):
+    """Board response after an update, with owner and member user data."""
+
+    owner_data = UserSerializer(source="owner", read_only=True)
+    members_data = UserSerializer(source="members", many=True, read_only=True)
+
+    class Meta:
+        model = Board
+        fields = ["id", "title", "owner_data", "members_data"]
+
+
+class BoardListSerializer(BoardSerializer):
+    """Board overview for the list endpoint, without member ids."""
 
     class Meta(BoardSerializer.Meta):
-        fields = BoardSerializer.Meta.fields + ["tasks"]
+        fields = [
+            field for field in BoardSerializer.Meta.fields if field != "members"
+        ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -158,4 +184,15 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ["author", "comment"]
+        fields = ["id", "author", "comment"]
+
+
+class TaskCommentSerializer(serializers.ModelSerializer):
+    """Comment of a task with creation date, author name and text as content."""
+
+    author = serializers.CharField(source="author.fullname", read_only=True)
+    content = serializers.CharField(source="comment")
+
+    class Meta:
+        model = Comment
+        fields = ["id", "created_at", "author", "content"]

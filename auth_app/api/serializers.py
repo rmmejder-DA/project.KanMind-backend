@@ -42,6 +42,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_fullname(self, value):
+        if len(value.split()) not in (2, 3):
+            raise serializers.ValidationError(
+                "Fullname must contain two or three words."
+            )
+        return value
+
     def validate(self, attrs):
         if attrs["password"] != attrs["repeated_password"]:
             raise serializers.ValidationError(

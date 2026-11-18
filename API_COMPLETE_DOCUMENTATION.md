@@ -36,8 +36,7 @@ POST /api/registration/
   "token": "83bf098723b08f7b23429u0fv8274",
   "user_id": 123,
   "email": "example@mail.de",
-  "fullname": "Example Username",
-  "is_staff": false
+  "fullname": "Example Username"
 }
 ```
 
@@ -62,8 +61,7 @@ POST /api/login/
   "token": "83bf098723b08f7b23429u0fv8274",
   "user_id": 123,
   "email": "example@mail.de",
-  "fullname": "Example Username",
-  "is_staff": false
+  "fullname": "Example Username"
 }
 ```
 
@@ -355,6 +353,8 @@ POST /api/tasks/
 
 **Requires:** Authentication ✅ + Board Member
 
+**Status Codes:** `201` created, `400` invalid data (e.g. missing fields, assignee/reviewer not a board member), `401` not authenticated, `403` not a board member, `404` board not found
+
 ---
 
 ### 3.4 Update Task
@@ -375,6 +375,10 @@ PATCH /api/tasks/{task_id}/
 
 **Requires:** Authentication ✅ + Board Member
 
+**Status Codes:** `200` updated, `400` invalid data or board change attempted, `401` not authenticated, `403` not a board member, `404` task not found
+
+**Note:** Das Board einer Task kann nicht geändert werden.
+
 ---
 
 ### 3.5 Delete Task
@@ -384,15 +388,17 @@ DELETE /api/tasks/{task_id}/
 
 **Success Response (204 No Content)**
 
-**Requires:** Authentication ✅ + Board Member
+**Requires:** Authentication ✅ + Board Member + (Task-Ersteller oder Board-Owner)
+
+**Status Codes:** `204` deleted, `401` not authenticated, `403` not the task creator or board owner, `404` task not found
 
 ---
 
 ## 4. Comments
 
-### 4.1 List Comments on Task
+### 4.1 List Comments
 ```
-GET /api/tasks/{task_id}/comments/
+GET /api/tasks/allcomments/
 ```
 
 **Success Response (200 OK):**
@@ -401,14 +407,12 @@ GET /api/tasks/{task_id}/comments/
   {
     "id": 15,
     "author": "Max Mustermann",
-    "content": "Das ist ein Kommentar zur Task.",
-    "created_at": "2025-02-20T15:00:00Z"
+    "comment": "Das ist ein Kommentar zur Task."
   },
   {
     "id": 16,
     "author": "Marie Musterfrau",
-    "content": "Ich stimme zu!",
-    "created_at": "2025-02-20T15:05:00Z"
+    "comment": "Ich stimme zu!"
   }
 ]
 ```
@@ -417,7 +421,30 @@ GET /api/tasks/{task_id}/comments/
 
 ---
 
-### 4.2 Create Comment
+### 4.2 List Comments of a Task
+```
+GET /api/tasks/{task_id}/comments/
+```
+
+**Success Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "created_at": "2025-02-20T14:30:00Z",
+    "author": "Max Mustermann",
+    "content": "Das ist ein Kommentar zur Task."
+  }
+]
+```
+
+**Status Codes:** `200` list (oldest first), `401` not authenticated, `403` not a member of the task's board, `404` task not found
+
+**Requires:** Authentication ✅ + Board Member of the task's board
+
+---
+
+### 4.3 Create Comment on a Task
 ```
 POST /api/tasks/{task_id}/comments/
 ```
@@ -433,22 +460,52 @@ POST /api/tasks/{task_id}/comments/
 ```json
 {
   "id": 15,
+  "created_at": "2025-02-20T15:00:00Z",
   "author": "Max Mustermann",
-  "content": "Das ist ein neuer Kommentar zur Task.",
-  "created_at": "2025-02-20T15:00:00Z"
+  "content": "Das ist ein neuer Kommentar zur Task."
 }
 ```
 
-**Requires:** Authentication ✅ + Board Member
+**Status Codes:** `201` created, `400` empty `content`, `401` not authenticated, `403` not a member of the task's board, `404` task not found
+
+**Requires:** Authentication ✅ + Board Member of the task's board. The author is the authenticated user.
 
 ---
 
-### 4.3 Delete Comment
+### 4.4 Create Comment (all comments endpoint)
+```
+POST /api/tasks/allcomments/
+```
+
+**Request Body:**
+```json
+{
+  "task": 7,
+  "comment": "Das ist ein neuer Kommentar zur Task."
+}
+```
+
+**Success Response (201 Created):**
+```json
+{
+  "id": 15,
+  "author": "Max Mustermann",
+  "comment": "Das ist ein neuer Kommentar zur Task."
+}
+```
+
+**Requires:** Authentication ✅ + Board Member of the task's board
+
+---
+
+### 4.5 Delete Comment
 ```
 DELETE /api/tasks/{task_id}/comments/{comment_id}/
 ```
 
 **Success Response (204 No Content)**
+
+**Status Codes:** `204` deleted, `401` not authenticated, `403` not the comment's author, `404` comment or task not found
 
 **Requires:** Authentication ✅ + Comment Author
 

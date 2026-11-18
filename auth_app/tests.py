@@ -93,3 +93,12 @@ class AuthApiTests(TestCase):
         response = self.client.get(EMAIL_CHECK_URL, {'email': 'nobody@x.de'})
 
         self.assertEqual(response.status_code, 404)
+
+    def test_email_check_rejects_missing_or_malformed_email(self):
+        self.client.force_authenticate(user=self.user)
+
+        missing = self.client.get(EMAIL_CHECK_URL)
+        malformed = self.client.get(EMAIL_CHECK_URL, {'email': 'not-an-email'})
+
+        self.assertEqual(missing.status_code, 400)
+        self.assertEqual(malformed.status_code, 400)

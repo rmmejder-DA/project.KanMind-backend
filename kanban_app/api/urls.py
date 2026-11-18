@@ -8,66 +8,73 @@ from kanban_app.api.views import (
     BoardViewSet,
     CommentViewSet,
     ReviewingTaskListView,
+    TaskCommentListView,
     TaskViewSet,
 )
 
 urlpatterns = [
     # Boards
     path(
-        'boards/',
-        BoardViewSet.as_view({'get': 'list', 'post': 'create'}),
-        name='board-list',
+        "boards/",
+        BoardViewSet.as_view({"get": "list", "post": "create"}),
+        name="board-list",
     ),
     path(
-        'boards/<int:pk>/',
-        BoardViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
-        name='board-detail',
+        "boards/<int:pk>/",
+        BoardViewSet.as_view(
+            {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+        ),
+        name="board-detail",
     ),
     path(
-        'boards/<int:board_id>/members/',
+        "boards/<int:board_id>/members/",
         BoardMembersListView.as_view(),
-        name='board-members',
+        name="board-members",
     ),
-    
     # Tasks
     path(
-        'tasks/',
-        TaskViewSet.as_view({'get': 'list', 'post': 'create'}),
-        name='task-list',
+        "tasks/",
+        TaskViewSet.as_view({"get": "list", "post": "create"}),
+        name="task-list",
     ),
     path(
-        'tasks/<int:pk>/',
-        TaskViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
-        name='task-detail',
-    ),
-    path(
-        'tasks/assigned-to-me/',
+        "tasks/assigned-to-me/",
         AssignedTaskListView.as_view(),
-        name='tasks-assigned',
+        name="tasks-assigned",
     ),
     path(
-        'tasks/reviewing/',
+        "tasks/reviewing/",
         ReviewingTaskListView.as_view(),
-        name='tasks-reviewing',
+        name="tasks-reviewing",
     ),
-    
     # Task Comments
     path(
-        'tasks/allcomments/',
-        CommentViewSet.as_view({
-            'get': 'list',
-            'post': 'create'
-        }),
-        name='all-comments',
+        "tasks/<int:task_id>/comments/",
+        TaskCommentListView.as_view(),
+        name="task-comments",
     ),
     path(
-        'tasks/<int:task_id>/comments/<int:pk>/',
-        CommentViewSet.as_view({
-            'get': 'retrieve',
-            'patch': 'update',
-            'delete': 'destroy',
-        }),
-        name='task-comment-detail',
+        "tasks/allcomments/",
+        CommentViewSet.as_view({"get": "list", "post": "create"}),
+        name="all-comments",
+    ),
+    path(
+        "tasks/<int:task_id>/comments/<str:pk>/",
+        CommentViewSet.as_view(
+            {
+                "get": "retrieve",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+        name="task-comment-detail",
+    ),
+    # Must come after the fixed task paths above, since <str:pk> matches them too.
+    path(
+        "tasks/<str:pk>/",
+        TaskViewSet.as_view(
+            {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+        ),
+        name="task-detail",
     ),
 ]
-
