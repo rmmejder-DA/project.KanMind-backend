@@ -110,16 +110,22 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     queryset = Task.objects.annotate(comments_count=Count("comments"))
     serializer_class = TaskSerializer
-
+    
     def get_permissions(self):
-        """Only the task creator or the board owner may delete a task."""
-        if self.action == "destroy":
-            return [
-                IsAuthenticated(),
-                IsBoardMember(),
-                IsTaskCreatorOrBoardOwner(),
-            ]
-        return [IsAuthenticated(), IsBoardMember()]
+        if self.action == "partial_update":
+            permission_classes = [
+            IsAuthenticated,
+            IsBoardMember,
+            IsTaskCreatorOrBoardOwner,
+        ]
+        else:
+            permission_classes = [
+            IsAuthenticated,
+            IsBoardMember,
+        ]
+
+        return [permission() for permission in permission_classes]
+
 
     def get_queryset(self):
         """Return all tasks, limited to the user's boards for the list."""
