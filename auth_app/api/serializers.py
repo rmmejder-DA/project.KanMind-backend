@@ -36,6 +36,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         ]
 
     def validate_email(self, value):
+        """Reject an email address that is already registered."""
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError(
                 "A user with this email already exists."
@@ -43,6 +44,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return value
 
     def validate_fullname(self, value):
+        """Require a fullname with two or three words."""
         if len(value.split()) not in (2, 3):
             raise serializers.ValidationError(
                 "Fullname must contain two or three words."
@@ -50,6 +52,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        """Check that both password entries match."""
         if attrs["password"] != attrs["repeated_password"]:
             raise serializers.ValidationError(
                 {"password": "Passwords do not match."}
@@ -57,6 +60,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        """Create the user with a hashed password."""
         validated_data.pop("repeated_password")
 
         user = User(
@@ -69,11 +73,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         return user
 
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        """Authenticate the user and store it in the validated data."""
         user = authenticate(email=attrs["email"], password=attrs["password"])
 
         if user is None:

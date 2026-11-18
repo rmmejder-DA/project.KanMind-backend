@@ -34,6 +34,7 @@ class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        """Return an example payload for the registration form."""
         return Response(
             {
                 "fullname": "Max Mustermann",
@@ -45,6 +46,7 @@ class RegistrationView(APIView):
         )
 
     def post(self, request):
+        """Create the user and return the token and user data."""
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -64,6 +66,7 @@ class LoginView(APIView):
     serializer_class = LoginSerializer
 
     def get(self, request):
+        """Return an example payload for the login form."""
         return Response(
             {
                 "email": "max@example.com",
@@ -73,6 +76,7 @@ class LoginView(APIView):
         )
 
     def post(self, request):
+        """Authenticate the user and return the token and user data."""
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -91,6 +95,7 @@ class GuestLoginView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        """Return the email of a non-staff user for the guest login."""
         guest_user = User.objects.filter(is_staff=False).first()
 
         if not guest_user:
@@ -115,15 +120,21 @@ class EmailCheckView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Check the email passed as query parameter."""
         return self.check_email(request.query_params.get("email"))
 
     def post(self, request):
+        """Check the email passed in the JSON body."""
         data = request.data if isinstance(request.data, dict) else {}
         return self.check_email(data.get("email"))
 
     def check_email(self, email):
+        """Validate the email and return the data of the matching user."""
         if not isinstance(email, str) or not email:
-            return self.bad_request("Email is required.", email="user@example.com")
+            return self.bad_request(
+                "Email is required.",
+                email="user@example.com",
+            )
 
         if not self.is_valid_email(email):
             return self.bad_request("Invalid email address.")
@@ -132,6 +143,7 @@ class EmailCheckView(APIView):
         return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
     def is_valid_email(self, email):
+        """Return True if the value is a syntactically valid email."""
         try:
             validate_email(email)
         except DjangoValidationError:
@@ -139,4 +151,8 @@ class EmailCheckView(APIView):
         return True
 
     def bad_request(self, detail, **extra):
-        return Response({"detail": detail, **extra}, status=status.HTTP_400_BAD_REQUEST)
+        """Return a 400 response with a detail message and extra fields."""
+        return Response(
+            {"detail": detail, **extra},
+            status=status.HTTP_400_BAD_REQUEST,
+        )

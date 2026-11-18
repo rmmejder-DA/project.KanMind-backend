@@ -69,7 +69,8 @@ urlpatterns = [
         ),
         name="task-comment-detail",
     ),
-    # Must come after the fixed task paths above, since <str:pk> matches them too.
+    # Must come after the fixed task paths above, since <str:pk> matches
+    # them too.
     path(
         "tasks/<str:pk>/",
         TaskViewSet.as_view(

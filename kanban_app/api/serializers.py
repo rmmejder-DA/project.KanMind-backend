@@ -10,7 +10,9 @@ from kanban_app.models import Board, Comment, Task
 def ensure_board_member(board, user):
     """Raise a validation error when the user is not a board member."""
     if not board.members.filter(pk=user.pk).exists():
-        raise serializers.ValidationError("You are not a member of this board.")
+        raise serializers.ValidationError(
+            "You are not a member of this board."
+        )
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -107,9 +109,14 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
 
     def validate_board(self, board):
-        """Allow only board members to create tasks, and keep the board of an existing task."""
+        """Allow only board members to create tasks.
+
+        The board of an existing task cannot be changed.
+        """
         if self.instance and board != self.instance.board:
-            raise serializers.ValidationError("The board of a task cannot be changed.")
+            raise serializers.ValidationError(
+                "The board of a task cannot be changed."
+            )
         ensure_board_member(
             board,
             self.context["request"].user,
@@ -128,11 +135,14 @@ class TaskSerializer(serializers.ModelSerializer):
 
         return attrs
 
+
 class BoardTaskSerializer(TaskSerializer):
     """Task data nested in a board, without the board id."""
 
     class Meta(TaskSerializer.Meta):
-        fields = [field for field in TaskSerializer.Meta.fields if field != "board"]
+        fields = [
+            field for field in TaskSerializer.Meta.fields if field != "board"
+        ]
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
@@ -163,7 +173,9 @@ class BoardListSerializer(BoardSerializer):
 
     class Meta(BoardSerializer.Meta):
         fields = [
-            field for field in BoardSerializer.Meta.fields if field != "members"
+            field
+            for field in BoardSerializer.Meta.fields
+            if field != "members"
         ]
 
 
@@ -178,7 +190,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class TaskCommentSerializer(serializers.ModelSerializer):
-    """Comment of a task with creation date, author name and text as content."""
+    """Comment of a task with creation date, author name and content."""
 
     author = serializers.CharField(source="author.fullname", read_only=True)
     content = serializers.CharField(source="comment")

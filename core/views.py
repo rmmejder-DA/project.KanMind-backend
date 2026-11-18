@@ -21,6 +21,5 @@ ENDPOINTS = {
 
 
 def api_index(request):
+    """Return the list of available endpoints as JSON."""
     return JsonResponse({'endpoints': ENDPOINTS})
-
-

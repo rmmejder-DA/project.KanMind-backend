@@ -45,4 +45,5 @@ class User(AbstractBaseUser, PermissionsMixin):
         ordering = ['fullname']
 
     def __str__(self):
+        """Return the email address as the display name."""
         return self.email

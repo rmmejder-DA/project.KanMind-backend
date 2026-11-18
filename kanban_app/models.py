@@ -25,6 +25,7 @@ class Board(models.Model):
         ordering = ['id']
 
     def __str__(self):
+        """Return the board title."""
         return self.title
 
 
@@ -89,6 +90,7 @@ class Task(models.Model):
         ordering = ['id']
 
     def __str__(self):
+        """Return the task title."""
         return self.title
 
 
@@ -114,4 +116,5 @@ class Comment(models.Model):
         ordering = ['id']
 
     def __str__(self):
+        """Return a short description of the comment and its task."""
         return f'Comment by {self.author} on {self.task}'
