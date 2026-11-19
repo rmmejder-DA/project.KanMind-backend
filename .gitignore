@@ -1,0 +1,12 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+db.sqlite3
+.coverage
+htmlcov/
+API_DOCUMENTATION_CHECKLIST.md
+API_COMPLETE_DOCUMENTATION.md
+DJANGO_URLS_VIEWS_ANLEITUNG.md
+tests.py
+*.log
